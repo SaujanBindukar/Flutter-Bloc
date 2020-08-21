@@ -4,7 +4,9 @@ import 'package:movieapp/model/genre.dart';
 import 'package:movieapp/model/movie.dart';
 import 'package:movieapp/model/topRated.dart';
 import 'package:movieapp/view/movieDetail.dart';
+import 'package:movieapp/view/searchResult.dart';
 import 'package:page_indicator/page_indicator.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class FirstPage extends StatefulWidget {
   FirstPage({Key key}) : super(key: key);
@@ -14,12 +16,21 @@ class FirstPage extends StatefulWidget {
 }
 
 class _FirstPageState extends State<FirstPage> {
+  final movieName = TextEditingController();
+  @override
+  void dispose() {
+    // Clean up the controller when the widget is disposed.
+    movieName.dispose();
+    super.dispose();
+  }
+
   void initState() {
     super.initState();
     bloc.getMovie();
     bloc.getGenre();
     bloc.getTopRated();
     bloc.getUpcomming();
+    bloc.getPopular();
   }
 
   @override
@@ -27,14 +38,60 @@ class _FirstPageState extends State<FirstPage> {
     return Scaffold(
       backgroundColor: Color.fromARGB(0xff, 19, 50, 85),
       appBar: AppBar(
-        centerTitle: true,
-        title: Text("Movie App"),
+        centerTitle: false,
+        title: Text(
+          "Movie App",
+        ),
         elevation: 0,
         backgroundColor: Color.fromARGB(0xff, 19, 50, 85),
         actions: [
           Padding(
-            padding: const EdgeInsets.only(right: 16),
-            child: Icon(Icons.search),
+            padding: const EdgeInsets.all(8.0),
+            child: Container(
+              width: 200,
+              child: Center(
+                child: TextField(
+                  onSubmitted: (value) => {
+                    print(movieName.text),
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => SearchResult(
+                                movieName: movieName.text,
+                              )),
+                    )
+                  },
+                  textInputAction: TextInputAction.search,
+                  controller: movieName,
+                  style: TextStyle(color: Colors.white),
+                  decoration: InputDecoration(
+                    fillColor: Colors.white,
+                    labelText: "Search Movie",
+                    labelStyle: TextStyle(
+                      color: Colors.white,
+                    ),
+                    prefixIcon: Icon(
+                      Icons.search,
+                      color: Colors.white,
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.all(Radius.circular(4)),
+                      borderSide: BorderSide(width: 1, color: Colors.white),
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(
+                        5.0,
+                      ),
+                      borderSide: BorderSide(
+                        width: 1,
+                        color: Colors.white,
+                        // style: BorderStyle.solid,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
           )
         ],
       ),
@@ -44,6 +101,9 @@ class _FirstPageState extends State<FirstPage> {
             mainAxisAlignment: MainAxisAlignment.start,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              SizedBox(
+                height: 15,
+              ),
               genre(context),
               trendingMovie(context),
               Padding(
@@ -70,6 +130,18 @@ class _FirstPageState extends State<FirstPage> {
                 ),
               ),
               upcomming(context),
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Text(
+                  "Popular",
+                  style: TextStyle(
+                    fontSize: 20,
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              popular(context),
             ],
           ),
         ],
@@ -111,10 +183,17 @@ Widget trendingMovie(BuildContext context) {
                     children: [
                       Padding(
                         padding: const EdgeInsets.all(0.0),
-                        child: Image.network(
-                            "https://image.tmdb.org/t/p/original" +
+                        child: Center(
+                          child: CachedNetworkImage(
+                            imageUrl: "https://image.tmdb.org/t/p/original" +
                                 snapshot.data.results[index].backdropPath,
-                            height: MediaQuery.of(context).size.height / 3),
+                            height: MediaQuery.of(context).size.height / 3,
+                            placeholder: (context, url) =>
+                                Center(child: CircularProgressIndicator()),
+                            errorWidget: (context, url, error) =>
+                                Icon(Icons.error),
+                          ),
+                        ),
                       ),
                       Positioned(
                         top: MediaQuery.of(context).size.height / 3 - 50,
@@ -148,7 +227,19 @@ Widget trendingMovie(BuildContext context) {
             ),
           );
         }
-        return Container();
+        if (snapshot.hasError) {
+          return Center(
+            child: Text(
+              "Error loading the data...",
+              style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white),
+            ),
+          );
+        }
+
+        return CircularProgressIndicator();
       },
     ),
   );
@@ -218,7 +309,13 @@ Widget topRated(BuildContext context) {
               itemBuilder: (BuildContext context, int index) {
                 return InkWell(
                   onTap: () {
-                    // print(snapshot.data.genres[index].id);
+                    print(snapshot.data.results[index].id);
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              MovieDetail(id: snapshot.data.results[index].id),
+                        ));
                   },
                   child: Padding(
                     padding: const EdgeInsets.all(8.0),
@@ -231,12 +328,18 @@ Widget topRated(BuildContext context) {
                                     Border.all(width: 1, color: Colors.white)),
                             child: Padding(
                               padding: const EdgeInsets.all(8.0),
-                              child: Image.network(
-                                "https://image.tmdb.org/t/p/original" +
-                                    snapshot.data.results[index].backdropPath,
+                              child: CachedNetworkImage(
+                                imageUrl:
+                                    "https://image.tmdb.org/t/p/original" +
+                                        snapshot
+                                            .data.results[index].backdropPath,
                                 height: 150,
                                 width: 120,
-                                fit: BoxFit.cover,
+                                fit: BoxFit.fitHeight,
+                                placeholder: (context, url) =>
+                                    CircularProgressIndicator(),
+                                errorWidget: (context, url, error) =>
+                                    Icon(Icons.error),
                               ),
                             )),
                         Container(
@@ -280,7 +383,13 @@ Widget upcomming(BuildContext context) {
               itemBuilder: (BuildContext context, int index) {
                 return InkWell(
                   onTap: () {
-                    // print(snapshot.data.genres[index].id);
+                    print(snapshot.data.results[index].id);
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              MovieDetail(id: snapshot.data.results[index].id),
+                        ));
                   },
                   child: Padding(
                     padding: const EdgeInsets.all(8.0),
@@ -293,13 +402,125 @@ Widget upcomming(BuildContext context) {
                                     Border.all(width: 1, color: Colors.white)),
                             child: Padding(
                               padding: const EdgeInsets.all(8.0),
-                              child: Image.network(
-                                "https://image.tmdb.org/t/p/original" +
-                                    snapshot.data.results[index].backdropPath,
-                                height: 150,
-                                width: 120,
-                                fit: BoxFit.cover,
+                              child:
+                                  snapshot.data.results[index].backdropPath !=
+                                          null
+                                      ? CachedNetworkImage(
+                                          imageUrl:
+                                              "https://image.tmdb.org/t/p/original" +
+                                                  snapshot.data.results[index]
+                                                      .backdropPath,
+                                          height: 150,
+                                          width: 120,
+                                          fit: BoxFit.fitHeight,
+                                          placeholder: (context, url) =>
+                                              CircularProgressIndicator(),
+                                          errorWidget: (context, url, error) =>
+                                              Icon(Icons.error),
+                                        )
+                                      : CachedNetworkImage(
+                                          imageUrl:
+                                              "https://image.tmdb.org/t/p/original" +
+                                                  snapshot.data.results[index]
+                                                      .posterPath,
+                                          height: 150,
+                                          width: 120,
+                                          fit: BoxFit.fitHeight,
+                                          placeholder: (context, url) =>
+                                              CircularProgressIndicator(),
+                                          errorWidget: (context, url, error) =>
+                                              Icon(Icons.error),
+                                        ),
+                            )),
+                        Container(
+                            width: 100,
+                            child: Text(
+                              snapshot.data.results[index].originalTitle,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 20,
                               ),
+                            ))
+                      ],
+                    ),
+                  ),
+                );
+              });
+        }
+        if (snapshot.hasError) {
+          Text("Error");
+        }
+        return Container();
+      },
+    ),
+  );
+}
+
+Widget popular(BuildContext context) {
+  return Container(
+    height: 220,
+    child: StreamBuilder<TopRated>(
+      stream: bloc.popular.stream,
+      builder: (
+        context,
+        AsyncSnapshot<TopRated> snapshot,
+      ) {
+        if (snapshot.hasData) {
+          return ListView.builder(
+              scrollDirection: Axis.horizontal,
+              itemCount: snapshot.data.results.length,
+              itemBuilder: (BuildContext context, int index) {
+                return InkWell(
+                  onTap: () {
+                    print(snapshot.data.results[index].id);
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              MovieDetail(id: snapshot.data.results[index].id),
+                        ));
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                            decoration: BoxDecoration(
+                                border:
+                                    Border.all(width: 1, color: Colors.white)),
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child:
+                                  snapshot.data.results[index].backdropPath !=
+                                          null
+                                      ? CachedNetworkImage(
+                                          imageUrl:
+                                              "https://image.tmdb.org/t/p/original" +
+                                                  snapshot.data.results[index]
+                                                      .backdropPath,
+                                          height: 150,
+                                          width: 120,
+                                          fit: BoxFit.fill,
+                                          placeholder: (context, url) =>
+                                              CircularProgressIndicator(),
+                                          errorWidget: (context, url, error) =>
+                                              Icon(Icons.error),
+                                        )
+                                      : CachedNetworkImage(
+                                          imageUrl:
+                                              "https://image.tmdb.org/t/p/original" +
+                                                  snapshot.data.results[index]
+                                                      .posterPath,
+                                          height: 150,
+                                          width: 120,
+                                          fit: BoxFit.fill,
+                                          placeholder: (context, url) =>
+                                              CircularProgressIndicator(),
+                                          errorWidget: (context, url, error) =>
+                                              Icon(Icons.error),
+                                        ),
                             )),
                         Container(
                             width: 100,

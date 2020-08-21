@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:movieapp/bloc/movie_bloc.dart';
 import 'package:movieapp/model/movieById.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class MovieDetail extends StatefulWidget {
   final int id;
@@ -15,7 +16,6 @@ class _MovieDetailState extends State<MovieDetail> {
   void initState() {
     super.initState();
     bloc.getMovieById(widget.id);
-    print("Movie id" + widget.id.toString());
   }
 
   @override
@@ -42,12 +42,15 @@ class _MovieDetailState extends State<MovieDetail> {
                   child: Column(
                     children: [
                       snapshot.data.posterPath != null
-                          ? Image.network(
-                              "https://image.tmdb.org/t/p/original" +
+                          ? CachedNetworkImage(
+                              imageUrl: "https://image.tmdb.org/t/p/original" +
                                   snapshot.data.posterPath,
-                              height: MediaQuery.of(context).size.height / 1.5,
                               width: MediaQuery.of(context).size.width,
                               fit: BoxFit.fill,
+                              placeholder: (context, url) =>
+                                  CircularProgressIndicator(),
+                              errorWidget: (context, url, error) =>
+                                  Icon(Icons.error),
                             )
                           : Container(),
                       SizedBox(

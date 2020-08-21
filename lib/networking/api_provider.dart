@@ -60,4 +60,29 @@ class ApiProvider {
       return error;
     }
   }
+
+  Future<TopRated> getPopular(String url) async {
+    try {
+      Response response = await _dio.get(_baseUrl + url + "?api_key=" + apiKey);
+      return TopRated.fromJson(response.data);
+    } catch (error, stacktrace) {
+      print("Exception occured: $error stackTrace: $stacktrace");
+      return error;
+    }
+  }
+
+  Future<TopRated> getMovieByName(String movieName) async {
+    try {
+      Response response = await _dio.get(
+          _baseUrl + "search/movie?api_key=" + apiKey + "&query=" + movieName);
+      if (response.statusCode == 200) {
+        return TopRated.fromJson(response.data);
+      } else {
+        throw Exception('Failed to load album');
+      }
+    } catch (error, stacktrace) {
+      print("Exception occured: $error stackTrace: $stacktrace");
+      return error;
+    }
+  }
 }

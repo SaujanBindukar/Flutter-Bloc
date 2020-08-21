@@ -26,4 +26,12 @@ class MovieRepo {
   Future<TopRated> getUpcomming() {
     return _apiProvider.getUpcomming("movie/upcoming");
   }
+
+  Future<TopRated> getPopular() {
+    return _apiProvider.getUpcomming("movie/popular");
+  }
+
+  Future<TopRated> getMovieByName(String movieName) {
+    return _apiProvider.getMovieByName(movieName);
+  }
 }

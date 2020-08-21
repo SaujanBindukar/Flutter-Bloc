@@ -26,6 +26,7 @@ dependencies:
   cupertino_icons: ^0.1.3
   dio:
   rxdart:
+  page_indicator:
 
 dev_dependencies:
   flutter_test:

@@ -1,14 +1,14 @@
 import 'package:movieapp/model/movie.dart';
 
 class MovieResponse {
-  final List<movie> results;
+  final List<Movie> results;
   final String error;
 
   MovieResponse(this.results, this.error);
 
   MovieResponse.fromJson(Map<String, dynamic> json)
       : results = (json["results"] as List)
-            .map((i) => new movie.fromJson(i))
+            .map((i) => new Movie.fromJson(i))
             .toList(),
         error = "";
 

@@ -1,31 +1,22 @@
-class movie {
-  int page;
+class Movie {
   List<Results> results;
-  int totalPages;
-  int totalResults;
 
-  movie({this.page, this.results, this.totalPages, this.totalResults});
+  Movie({this.results});
 
-  movie.fromJson(Map<String, dynamic> json) {
-    page = json['page'];
+  Movie.fromJson(Map<String, dynamic> json) {
     if (json['results'] != null) {
       results = new List<Results>();
       json['results'].forEach((v) {
         results.add(new Results.fromJson(v));
       });
     }
-    totalPages = json['total_pages'];
-    totalResults = json['total_results'];
   }
 
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['page'] = this.page;
     if (this.results != null) {
       data['results'] = this.results.map((v) => v.toJson()).toList();
     }
-    data['total_pages'] = this.totalPages;
-    data['total_results'] = this.totalResults;
     return data;
   }
 }
@@ -34,7 +25,6 @@ class Results {
   int id;
   bool video;
   int voteCount;
-  double voteAverage;
   String title;
   String releaseDate;
   String originalLanguage;
@@ -54,7 +44,6 @@ class Results {
     this.id,
     this.video,
     this.voteCount,
-    this.voteAverage,
     this.title,
     this.releaseDate,
     this.originalLanguage,
@@ -75,7 +64,7 @@ class Results {
     id = json['id'];
     video = json['video'];
     voteCount = json['vote_count'];
-    voteAverage = json['vote_average'];
+
     title = json['title'];
     releaseDate = json['release_date'];
     originalLanguage = json['original_language'];
@@ -97,7 +86,6 @@ class Results {
     data['id'] = this.id;
     data['video'] = this.video;
     data['vote_count'] = this.voteCount;
-    data['vote_average'] = this.voteAverage;
     data['title'] = this.title;
     data['release_date'] = this.releaseDate;
     data['original_language'] = this.originalLanguage;
